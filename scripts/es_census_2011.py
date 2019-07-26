@@ -130,12 +130,12 @@ def import_geodata(data_files, data_path, catalog):
         geom.transform(transform)
         field_data = {geometry_data_mapping[k]: shape.get(v) for k, v in zip(fields, range(len(fields))) if k not in field_skip}
         metadata = {metadata_map[k]: shape.get(v) for k, v in zip(fields, range(len(fields))) if k not in metadata_skip}
-        # As the model stores only MultiPolygons, convert any Polygons.
+        # Normalise all Polygons to Multipolygons for ease of use later.
         if geom.geom_type.name == "Polygon":
             mp = OGRGeometry(OGRGeomType('MultiPolygon'))
             mp.add(geom)
             geom = mp
-        g = MultiPolygonStore(catalog=catalog, geom=geom.geos, metadata=metadata)
+        g = GeometryStore(catalog=catalog, geom=geom.geos, metadata=metadata)
         g.save()
         d = DataStore(catalog=catalog, parent_geometry=g, data=field_data)
         d.save()

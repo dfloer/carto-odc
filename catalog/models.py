@@ -24,12 +24,12 @@ class FriendlyName(models.Model):
         return(str(self.mapping))
 
 
-class MultiPolygonStore(models.Model):
+class GeometryStore(models.Model):
     """
-    Stores a multipolygon.
+    Stores a geometry.
     """
     catalog = models.ForeignKey(Catalog, on_delete=models.PROTECT)
-    geom = models.MultiPolygonField(geography=True, srid=4326)
+    geom = models.GeometryField(geography=True, srid=4326)
     # Why not put this in the DataStore? Because this should be used for data connected directly to the polygon.
     # For example, if the original datasource has area already calculated, store that here.
     # To reiterate, this shouldn't be used to what's inside the geometry, but the geometry itself.
@@ -44,7 +44,7 @@ class DataStore(models.Model):
     Stores all of the data related to a piece of geometry.
     """
     catalog = models.ForeignKey(Catalog, on_delete=models.PROTECT)
-    parent_geometry = models.ForeignKey(MultiPolygonStore, on_delete=models.PROTECT)
+    parent_geometry = models.ForeignKey(GeometryStore, on_delete=models.PROTECT)
     data = JSONField()
 
     def __str__(self):
