@@ -43,6 +43,7 @@ def province_density_test(request, province):
 def province_university_test(request, count):
     """
     Returns a list of the top provinces, ordered by the percentage of the population who has completed university (3rd level studies).
+    Results are given to two decimal places.
     Args:
         request (HttpRequest): Django request object.
         count (int): count of the top provinces to show.    
@@ -51,5 +52,42 @@ def province_university_test(request, count):
     Returns:
         HttpResonse object containing the results. Each result is the province name and the percentage.
     """
-    pass
+    catalog = Catalog.objects.get(catalog_name="Census-ES-2011")
+    all_data = DataStore.objects.filter(catalog=catalog)
+    province_population = defaultdict(list)
+    province_university = defaultdict(list)
+    # Start by aggregating population and number of university educated people per province.
+    for e in all_data:
+        province_name = e.data["npro"]
+        # '' in the data is treated as 0.
+        try:
+            population = int(e.data["t1_1"])
+        except ValueError:
+            population = 0
+        # See note in the readme about this. tl;dr: The source data is inconsistent.
+        # This means to ignore that regions from the shapefile that don't have associated full data.
+        except KeyError:
+            print(province_name, e.data["nmun"])
+            continue
+        try:
+            university = int(e.data["t12_5"])
+        except ValueError:
+            univercity = 0
+        province_population[province_name] += [population]
+        province_university[province_name] += [university]
+    # After aggregating population and university educated people, get the total of them and find percentage per province.
+    results = {}
+    for prov in province_population.keys():
+        total_population = sum(province_population[prov])
+        total_university = sum(province_university[prov])
+        results[prov] = round((total_university / total_population) * 100, 2)
+    # Sort highest to lowest and take top n (n=count).
+    results = sorted(results.items(), key=lambda x: x[1], reverse=True)
+    results = results[ : int(count)]
+    output = ""
+    for idx, res in enumerate(results):
+        k, v = res
+        output += f"{k}: {v}%<br />"        
+    return HttpResponse(f"{output}")
+
 
