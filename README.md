@@ -47,7 +47,7 @@ This will fetch the download data files from the download URLs and load them int
 
 ## Tests
 
-Two test views have been created:
+Some test views have been created:
 
 - `catalog/es-census-2011/test1/<province>` where \<province\> is the name of the province to look up. This returns a list of all municipalties in a province and their associated population densities, in people/square km. This is sorted alphabetically, but the sorting isn't correct with accented letters, such as in Spanish.
 - `catalog/es-census-2011/test2<count>` where \<count\> is the number of provinces to show results for. This returns a list of all provinces and what percentage of the population that has a university degree, sorted from most to least. **Note:** As Gipuzcoa and Gipuzkoa are treated as separate provinces, this impacts the results of this test. **Note:** As some small census "tracts" are missing data, this impacts the results of this test.
