@@ -15,7 +15,7 @@ Certain settings, such as allowed_hosts, debug and the secret_key in settings/se
 - Make sure that the system [geospatial library requirements for GeoDjango](https://docs.djangoproject.com/en/dev/ref/contrib/gis/install/#spatial-database) are installed.
 - Install [postgis](https://docs.djangoproject.com/en/2.2/ref/contrib/gis/install/postgis/).
 - Add [hstore](http://postgresguide.com/cool/hstore.html) to that database.
-- Change setting/settings.py [databases](https://docs.djangoproject.com/en/2.2/ref/settings/#databases) section to connect to the Postgresql server.
+- Change `setting/settings.py` [databases](https://docs.djangoproject.com/en/2.2/ref/settings/#databases) section to connect to the Postgresql server.
 - Create database schema using `python manage.py migrate`.
 - Import the test census data into the app.
   - For example, run:\
@@ -29,7 +29,7 @@ This will fetch the download data files from the download URLs and load them int
 - To manually check if the data imported correctly:
   - Create a superuser and follow the prompts from: `python manage.py createsuperuser`
   - Start the local testing server: `python manage.py runserver`
-  - Go the the server in a browser and log in using the created username and password. The data and geometry models are visible and the data can be browsed.
+  - Go the the server in a browser and log in using the created username and password. The data and geometry models are visible and the data can be browsed. The name/IP of the server may need to be added to allowed_hosts in `settings/settings.py`.
 
 ## Notes
 
@@ -39,10 +39,11 @@ This will fetch the download data files from the download URLs and load them int
 ## Possible Improvements
 
 - Data is imported as-is into the JSONField. Various fields would be better server by being converted from a string into the integer that string represents.
-- Some operations are quite slow due to Django presently (version 2.2.3) using PostgreSQL's json data type and not the jsonb datatype. This could be worked around with raw SQL until Django updates, or a third-party package could be added.
+- Some operations are quite slow due to Django (as of version 2.2.3 when this was written) using PostgreSQL's json datatype and not the jsonb datatype. This could be worked around with raw SQL until Django updates, or a third-party package could be added.
 - The FriendlyName model is intended to be used to map a nice name to a key in the JSONField. I haven't implemented this nice lookup.
-- Make data loading script idempotent so that it can be stopped and resumed as needed.
-- Add a more generic API. This could possibly be implemented as a REST or GraphQL API. GraphQL seems like it could be a good choice.
+- Make data loading script idempotent so that it can be stopped and resumed as needed. This would be especially important for massive imports.
+- Add a generic API. This could possibly be implemented as a REST or GraphQL API. GraphQL seems like it could be a good choice.
+- Data import script could batch things instead of Django's default of one transaction per query. This should speed up the import.
 
 ## Tests
 
@@ -50,3 +51,4 @@ Two test views have been created:
 
 - `catalog/es-census-2011/test1/<province>` where \<province\> is the name of the province to look up. This returns a list of all municipalties in a province and their associated population densities, in people/square km. This is sorted alphabetically, but the sorting isn't correct with accented letters, such as in Spanish.
 - `catalog/es-census-2011/test2<count>` where \<count\> is the number of provinces to show results for. This returns a list of all provinces and what percentage of the population that has a university degree, sorted from most to least. **Note:** As Gipuzcoa and Gipuzkoa are treated as separate provinces, this impacts the results of this test. **Note:** As some small census "tracts" are missing data, this impacts the results of this test.
+- `catalog/es-census-2011/missing-data` will print metadata related to all the database entries that didn't get any data from the CSV, just the shapefiles.
