@@ -1,3 +1,7 @@
 from django.contrib import admin
+from catalog.models import *
 
-# Register your models here.
+admin.site.register(Catalog)
+admin.site.register(FriendlyName)
+admin.site.register(MultiPolygonStore)
+admin.site.register(DataStore)
