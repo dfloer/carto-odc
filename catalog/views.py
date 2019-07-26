@@ -67,7 +67,6 @@ def province_university_test(request, count):
         # See note in the readme about this. tl;dr: The source data is inconsistent.
         # This means to ignore that regions from the shapefile that don't have associated full data.
         except KeyError:
-            print(province_name, e.data["nmun"])
             continue
         try:
             university = int(e.data["t12_5"])
@@ -91,3 +90,21 @@ def province_university_test(request, count):
     return HttpResponse(f"{output}")
 
 
+def find_problem_entries(request):
+    """
+    Finds the DataStore entries that were in the shapefile, but not in the CSVs.
+    Args:
+        request (HttpRequest): Django request object.
+    Returns:
+        HttpResonse object containing a list of the DataStore entries missing data and useful data to figure out which they are.
+    """
+    catalog = Catalog.objects.get(catalog_name="Census-ES-2011")
+    all_data = DataStore.objects.filter(catalog=catalog)
+    missing_data = ""
+    for x in all_data:
+        # One with data from just the shapefile is 17 entries, with the CSV data should be 162
+        if len(x.data) == 17:
+            raw = f"ccaa: {x.data['ccaa']}, cpro: {x.data['cpro']}, cmun: {x.data['cmun']}, dist: {x.data['dist']}, secc: {x.data['secc']}"
+            missing_data += f"id: {x.id}, province: \"{x.data['npro']}\", autonomous community: \"{x.data['nca']}\", municipality: \"{x.data['nmun']}\"<br />"
+            missing_data += f"raw: ({raw})<br /><br />"
+    return HttpResponse(missing_data)
